@@ -4,7 +4,7 @@
 
 > This repository includes code and plots. Exploratory analysis and intermediate processing files are too large for this repository.
 
-> The full associations and top association summary statistics are publicly available at the Zenodo [Link]()
+> The full associations and top association summary statistics are publicly available at the Zenodo [Link](https://zenodo.org/records/14908182)
 
 ## Description 
 
