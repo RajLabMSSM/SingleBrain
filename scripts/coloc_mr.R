@@ -18,10 +18,12 @@ COLOC_total <- read_tsv(paste0(path_dir,"/all_COLOC_results_merged_H4_0.5_with_L
 MR_total <- read_tsv(paste0(path_dir,"/all_MR_results_merged_H4_1_snp_wFDR.tsv.gz"))
 MR_total <- MR_total %>% dplyr::filter(grepl("Inverse variance weighted", method)) 
 
+## Extract specific GWAS
 COLOC_result <- COLOC_total %>% dplyr::filter(GWAS==gwas_name)
 
 AD_total_colocs <- COLOC_result
 
+### Convert gene id to gene symbol
 genes <- AD_total_colocs$QTL_Gene[grepl('ENSG0', AD_total_colocs$QTL_Gene, fixed=TRUE)]
 genes <- sapply(strsplit(genes, '\\.'), '[[', 1)
 AD_total_colocs$QTL_Ensembl[is.na(AD_total_colocs$QTL_Ensembl)] = AD_total_colocs$QTL_Gene[is.na(AD_total_colocs$QTL_Ensembl)]
@@ -41,6 +43,7 @@ AD_total_colocs <- AD_total_colocs[which(AD_total_colocs$QTL %in% snrna_qtl ),]
 
 AD_total_colocs$category <- factor(AD_total_colocs$category , levels = c('[0.5, 0.7]', '[0.7, 0.9]','[0.9, 1]'))
 
+### Make a summary count of coloc
 AD_total_colocs_summary <- AD_total_colocs %>% 
   arrange(QTL, desc(PP.H4.abf)) %>% 
   group_by(QTL, celltype) %>% 
@@ -65,6 +68,7 @@ coloc_combined_melted_filt <-  coloc_combined_melted[order(coloc_combined_melted
 df <- distinct(coloc_combined_melted_filt, locus, new_QTL_Gene, type, .keep_all= TRUE)
 df$celltype <- factor(df$celltype , levels = dataset_celltype)
 
+### Extract eQTL PP4 > 0.8 
 subsetted <- df
 subsetted <- subsetted %>% dplyr::filter(value >= 0.8 )
 subsetted$value <- 1
@@ -73,6 +77,7 @@ subsetted <- subsetted %>% arrange(QTL, desc(value)) %>%
   group_by(QTL, locus) %>% 
   distinct(QTL, .keep_all = TRUE) 
 
+### Load MR result and filter the significant result
 MR_result <- MR_total %>% dplyr::filter(GWAS==gwas_name)
 MR_result$FDR <- p.adjust(MR_result$pval, method = "BH" )
 MR_result <- MR_result %>% dplyr::filter(FDR < 0.05)
@@ -94,6 +99,7 @@ AD_total_mrs$Beta <- AD_total_mrs$Beta <- round(AD_total_mrs$Beta, digits=2)
 AD_total_mrs$value <- AD_total_mrs$Beta
 AD_total_mrs$Beta <- abs(AD_total_mrs$Beta)
 
+### Format MR and COLOC to merge
 subsetted2 <- AD_total_mrs %>% dplyr::select(GWAS, locus, new_QTL_Gene, QTL, celltype, value)
 subsetted2$method <- 'MR_positive'
 subsetted2[(subsetted2$value<0),'method'] = 'MR_negative'
@@ -172,31 +178,7 @@ ggsave(filename, plot = p1,
        dpi=600)
 
 
-## COLOC bar plot
-COLOC_result <- COLOC_total %>% dplyr::filter(GWAS==gwas_name)
-AD_total_colocs <- COLOC_result
-
-genes <- AD_total_colocs$QTL_Gene[grepl('ENSG0', AD_total_colocs$QTL_Gene, fixed=TRUE)]
-genes <- sapply(strsplit(genes, '\\.'), '[[', 1)
-AD_total_colocs$QTL_Ensembl[is.na(AD_total_colocs$QTL_Ensembl)] = AD_total_colocs$QTL_Gene[is.na(AD_total_colocs$QTL_Ensembl)]
-AD_total_colocs$QTL_Ensembl <- sapply(strsplit(AD_total_colocs$QTL_Ensembl, '\\.'), '[[', 1)
-geneIDs1 <- ensembldb::select(EnsDb.Hsapiens.v79, keys= genes, keytype = "GENEID", columns = c("SYMBOL","GENEID"))
-colnames(geneIDs1) = c('new_QTL_Gene', 'QTL_Ensembl')
-AD_total_colocs <- left_join(AD_total_colocs, geneIDs1, by='QTL_Ensembl')
-AD_total_colocs$new_QTL_Gene[is.na(AD_total_colocs$new_QTL_Gene)] = AD_total_colocs$QTL_Gene[is.na(AD_total_colocs$new_QTL_Gene)]
-AD_total_colocs <- AD_total_colocs[, c("GWAS","locus", 'GWAS_P',"PP.H4.abf","new_QTL_Gene","QTL", 'celltype')]
-AD_total_colocs$type <- AD_total_colocs$QTL
-
-AD_total_colocs$category = '[0.5, 0.7]'
-AD_total_colocs$category[AD_total_colocs$PP.H4.abf >= 0.7] = '[0.7, 0.9]'
-AD_total_colocs$category[AD_total_colocs$PP.H4.abf >= 0.9] = '[0.9, 1]'
-
-
-AD_total_colocs <- AD_total_colocs[which(AD_total_colocs$QTL %in% snrna_qtl ),]
-AD_total_colocs$category <- factor(AD_total_colocs$category , levels = c('[0.5, 0.7]', '[0.7, 0.9]','[0.9, 1]'))
-AD_total_colocs_summary <- AD_total_colocs %>% arrange(QTL, desc(PP.H4.abf)) %>% group_by(QTL, celltype) %>% distinct(locus, .keep_all = TRUE) %>% count(category)
-AD_total_by_qtl <- AD_total_colocs_summary %>% group_by(QTL, celltype) %>% summarise(total=sum(n))
-
+## COLOC bar plot from coloc summary
 AD_total_colocs_summary$QTL <- factor(AD_total_colocs_summary$QTL , levels = dataset_coloc)
 AD_total_colocs_summary$celltype <- factor(AD_total_colocs_summary$celltype , levels = dataset_celltype)
 AD_total_by_qtl$celltype <- factor(AD_total_by_qtl$celltype , levels = dataset_celltype)
