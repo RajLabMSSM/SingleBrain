@@ -10,6 +10,7 @@ suppressPackageStartupMessages(library(readxl))
 
 
 # For cell spc
+### Extract beta and p-value for annotation from COLOC result
 df_coloc <- read_xlsx('~/all_COLOC_results_merged_H4_0.5_with_LD.xlsx')
 df_dict <- df_coloc %>% dplyr::filter(PP.H4.abf>=0.80)
 
@@ -21,17 +22,21 @@ df_sum$labels <-paste0(df_sum$celltype,'\n','Beta: ',df_sum$beta,'\n','P: ',df_s
 
 snp_list <- df_dict$SNP %>% unique()
 
+# Plotting the box plot SNP by Gene pairs
+### SNP list first
 for(snp in snp_list){
+  ### Extract SNP from dictionary data
   df_dict_tmp <-df_dict %>% dplyr::filter(SNP==snp) %>% distinct(SNP, Symbol, feature, ID)
   gene_list <- df_dict_tmp$Symbol %>% unique()
 
+  ### Run by gene list
   for(genename in gene_list){
 
     df_dict_tmp2 <- df_dict_tmp %>% dplyr::filter(Symbol==genename) 
     geneid <- df_dict_tmp2$feature
     message(paste0(snp,'-',genename,'-',geneid))
     
-    #Gene expression
+    ### Extract and format gene expression with gene id 
     df_Ast_tmp <- df_Ast %>% dplyr::filter(Gene==geneid) %>% dplyr::select(-Gene)
     df_End_tmp <- df_End %>% dplyr::filter(Gene==geneid) %>% dplyr::select(-Gene)
     df_Ext_tmp <- df_Ext %>% dplyr::filter(Gene==geneid) %>% dplyr::select(-Gene)
@@ -62,7 +67,8 @@ for(snp in snp_list){
     rownames(df_OD_tmp) <- NULL
     df_OPC_tmp$sample_id <- rownames(df_OPC_tmp)
     rownames(df_OPC_tmp) <- NULL
-    
+
+    ### Add genotype information
     df_plot <- data.frame()
     for(celltype in cell_list){
       
@@ -113,7 +119,8 @@ for(snp in snp_list){
     }
     
     df_plot_fin <- df_plot  %>% drop_na()
-    
+
+   ### Extract beta and p-value for plot
     df_sum_tmp2 <- df_sum %>% dplyr::filter(QTL_Ensembl==geneid) %>%  dplyr::filter(variant_id==snp) %>%  
       dplyr::select(celltype, labels)
     df_plot_fin <- merge(df_plot_fin, df_sum_tmp2)
