@@ -62,6 +62,7 @@ ggsave(filename, plot = plot_q,
        dpi=600)
 
 
+### Plot for a specific result
 qvalues_to_plot$source_name <- factor(qvalues_to_plot$source_name , levels = qtl_list)
 qvalues_to_plot$target_name <- factor(qvalues_to_plot$target_name , levels = qtl_list)
 
