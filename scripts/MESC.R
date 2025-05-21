@@ -8,6 +8,7 @@ suppressPackageStartupMessages(library(readxl))
 all_mesc <- read_tsv(paste0('~/singleBrain_ALL_MESC.tsv'))
 all_mesc$cell_type <- factor(levels=c('Ext','IN','Ast','OD','OPC','MG','End'), all_mesc$cell_type)
 
+### Set color set
 dataset_celltype <- c('Ast','MG',
                       'Ext','IN',
                       'OD','OPC',
@@ -25,6 +26,7 @@ names(colorset) = dataset_celltype
 
 colorset
 
+## MESC plot 
 p_mesc <- all_mesc %>% dplyr::filter( disease %in% c("SCZ", "MS", "AD",'PD','BPD', 'ALS')) %>% dplyr::mutate(disease=factor(disease, levels=c("SCZ", "MS", "AD",'PD','BPD', 'ALS'))) %>% 
   ggplot(aes(x=cell_type)) +
   geom_hline(yintercept = 0, linetype = 2, linewidth = 0.2,) +
