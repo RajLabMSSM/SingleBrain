@@ -16,7 +16,7 @@ suppressPackageStartupMessages(library(cowplot))
 suppressPackageStartupMessages(library(GenomicRanges))
 suppressPackageStartupMessages(library(ggrepel))
 
-
+### Set up the Lifeover function
 chain_hg19_hg38 <- import.chain("~/hg19ToHg38.over.chain")
 chain_hg38_hg19 <- import.chain("~/hg38ToHg19.over.chain")
 liftOverCoord <- function(coord_string, from = "hg19", to = "hg38"){
@@ -58,6 +58,7 @@ liftOverCoord <- function(coord_string, from = "hg19", to = "hg38"){
 full_path_gwas <- paste0('~/', gwas_gene,'/',gwas,'_',rsid, '.tsv')
 full_path_mm_qtl <- paste0('~/',gwas_gene,'/',qtl,'_',rsid, '.tsv')
 
+### Load the credible SNPs
 df_cre <- read_tsv(paste0(path_dir, 'all_COLOC_credible_results_merged_H4_0.5.tsv.gz')) %>% 
   dplyr::filter(GWAS==gwas) %>% 
   dplyr::filter(grepl(gwas_gene, locus)) %>%
@@ -134,10 +135,12 @@ ldlink_sp <- ldlink_sp +
   return(ldlink_sp)
 }
 
-gene_variants_in_ld <- LDproxy(rsid, pop = "CEU", r2d = "r2", token = '')
+### Download LD with LDplinkR
+gene_variants_in_ld <- LDproxy(rsid, pop = "EUR", r2d = "r2", token = '')
 gene_variants_in_ld <- gene_variants_in_ld[, c(1,7)]
 names(gene_variants_in_ld)[names(gene_variants_in_ld) == 'RS_Number'] = 'snp'
 
+### plot the GWAS fine-mapping bar plot
 gwas_fine <- fread('~/GWAS_finemapping.csv.gz'),
 )
 gwas_fine_info <- gwas_fine %>% 
@@ -163,7 +166,7 @@ gwas_fine_plot <- gwas_fine_info %>% ggplot(aes(x=POS, y=FINEMAP.PP, color=Locus
                  color = "gray", size=0.5, )
 gwas_fine_plot
 
-
+### GWAS locuszoom plot
 gwas_fine <- gwas_fine %>% #arrange(desc(PIP)) %>%
   dplyr::filter(grepl(gwas_gene,Locus)) %>%
   dplyr::filter((FINEMAP.PP>0.95)) #%>% 
@@ -188,6 +191,7 @@ gwas_ad_fine_plot <- plot_variants_in_ld_fine(gene_variants_to_plot,
   coord_cartesian(xlim = c(start_hg19, end_hg19), c(0, y_max))
 gwas_ad_fine_plot
 
+### Plot the locuszoom with fine-mapping 
 qtl_fine <- read_tsv('~/all_results_merged_PIP_0.1.tsv.gz')
 qtl_fine <- qtl_fine %>% dplyr::filter((QTL==qtl) & (grepl(geneid, Gene_Ensembl)))  %>%
   dplyr::filter(method==select_method) %>%
@@ -240,6 +244,7 @@ qtl_mm_finebar_plot <- qtl_fine %>%  ggplot(aes(x=BP, y=PIP, color=method)) +
                  color = "gray", size=0.5, )
 qtl_mm_finebar_plot
 
+### Add line for lead GWAS, eQTL, fine-mapping SNP 
 snp_loc <- gwas_ad[which(gwas_ad$snp %in% snp_target_list),]
 gwas_ad_fine_plot2 <-  gwas_ad_fine_plot +
   geom_vline(xintercept=c( snp_loc$pos), linetype="solid",
@@ -402,6 +407,7 @@ locus_res$R2 <- signif(locus_res$R2, digits = 2)
 locus_res <- locus_res %>% arrange(end)
 snp_seq <- locus_res$snp %>% unique()
 
+### Plot the SNP by category
 r2_plot <- locus_res %>%
   mutate(snp = factor(snp, levels = snp_seq)) %>%
   mutate(label = factor(label, levels = c('GWAS Lead SNP', 'GWAS Fine-mapping', 
@@ -434,6 +440,7 @@ r2_plot <- locus_res %>%
 
 r2_plot
 
+### Check the SNP with Nott et al. 2019 enhancer and promoter sites
 nott_overlap <- function(locus_res, set, return_coordinates = FALSE){
   snp_df <- dplyr::filter(locus_res, !is.na(chr), !is.na(start)) 
   snp_gr <- GenomicRanges::GRanges(seqnames = snp_df$chr, ranges = IRanges::IRanges(start = snp_df$start, end = snp_df$end), snp = snp_df$snp)
@@ -505,6 +512,7 @@ nott_plot <- to_plot %>%
   )
 nott_plot
 
+### Merge R2 and Nott et al. plot
 overlap_result <- cowplot::plot_grid(r2_plot, 
                                      nott_plot,
                                      align='v', nrow=2, ncol=1,
