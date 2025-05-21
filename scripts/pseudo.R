@@ -21,6 +21,7 @@ option_list <- list(
   path_dir='~/'
   assay_name <- 'RNA'
 
+  # Load the Seurat object
   df_meta <- fread(file=paste0(path_dir, celltype, "/metadata.csv"))  %>% as.data.frame()
   row.names(df_meta) <- df_meta$V1
  
@@ -42,7 +43,8 @@ option_list <- list(
   gene_key <- '~/gene_id_key.txt'
   df_gene <- fread(gene_key, sep=' ')
   colnames(df_gene) <- c('gene_id', 'transcript_id')
-  
+
+  ### Mean aggregation pseudobulk
   print("Making Mean")
   dim(data.seurat)
   
@@ -68,7 +70,8 @@ option_list <- list(
   path_result <- paste0(path_dir, dataset, "_" ,celltype,"_",assay_name,"_mean.tsv")
   print(path_result)
   write.table(genes_tpm, path_result, row.names = F, quote = F, sep='\t')
-  
+
+  ### Sum aggregation pseudobulk
   print("Making Sum")
   sum.cell <-
     purrr::map( sample_list, ~{
