@@ -182,6 +182,7 @@ df_result$uniqbar <- df_result$overlap - df_result$uniq
 
 df_result$celltype <- factor(df_result$celltype, level=df_list)
 
+### Plotting
 p_bar <- df_result %>% ggplot(aes(x=celltype, y=overlap)) + 
   geom_bar( width = 0.8, fill='darkgrey', stat="identity") +
   geom_text(aes(label=overlap), 
@@ -201,6 +202,7 @@ p_bar <- df_result %>% ggplot(aes(x=celltype, y=overlap)) +
 
 p_bar
 
+### Making total bar
 df_result$point <- df_result$celltype
 df_result_point <- separate_rows(df_result, point, sep = '-')
 
