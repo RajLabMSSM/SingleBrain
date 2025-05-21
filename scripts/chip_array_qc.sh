@@ -12,7 +12,7 @@ plink --vcf ${input} --chr X --make-bed --out ${out_dir}/${sample_name}.chrX
 plink --vcf ${input} --autosome --make-bed --out ${out_dir}/${sample_name}.auto
 
 
-## Varint QC
+## Varint QC maf: 0.01 geno: 0.02
 input_dir="input directory"
 output_dir="output directory"
 
@@ -24,6 +24,7 @@ plink --bfile ${input_dir}/${sample_name}.auto \
 	--keep-allele-order \
 	--make-bed --out ${output_dir}/${sample_name}.auto.maf0.01.geno0.02
 
+## Extract control sample only to check HWE
 control="Control list"
 plink --bfile ${output_dir}/${sample_name}.auto.maf0.01.geno0.02 \
 	--hwe 0.000001 \
@@ -34,7 +35,7 @@ plink --bfile ${output_dir}/${sample_name}.auto.maf0.01.geno0.02 \
 awk '{print $2}' ${output_dir}/${sample_name}.auto.maf0.01.geno0.02.control.bim > ${output_dir}/maf0.01.geno0.02.hwe10E_6.auto.bim_list
 
 
-
+## Extract only pass HWE variants
 plink --bfile ${output_dir}/${sample_name}.auto.maf0.01.geno0.02 \
    --extract ${output_dir}/maf0.01.geno0.02.hwe10E_6.auto.bim_list \
    --keep-allele-order \
@@ -42,14 +43,14 @@ plink --bfile ${output_dir}/${sample_name}.auto.maf0.01.geno0.02 \
    --out ${output_dir}/${sample_name}.auto.maf0.01.geno0.02.hwe10E_6
 
 ## Sample Check
-
+### chromosome X filter
 plink --bfile ${input_dir}/${sample_name}.chrX \
 	--maf 0.01 \
 	--geno 0.02 \
 	--keep-allele-order \
 	--make-bed --out ${output_dir}/${sample_name}.chrX.maf0.01.geno0.02
 
-
+### missingness check
 plink --bfile ${output_dir}/${sample_name}.auto.maf0.01.geno0.02.hwe10E_6 \
    --missing --het \
    --out ${output_dir}/${sample_name}.auto.maf0.01.geno0.02.hwe10E_6
@@ -59,6 +60,7 @@ plink --bfile ${output_dir}/${sample_name}.chrX.maf0.01.geno0.02 \
 	--check-sex \
 	--out ${output_dir}/${sample_name}.chrX
 
+### Relatedness check
 ml king
 king -b ${output_dir}/${sample_name}.auto.maf0.01.geno0.02.hwe10E_6.bed \
          --kinship --ibs \
@@ -73,7 +75,7 @@ plink --bfile ${output_dir}/${sample_name}.pca \
 	--extract ${output_dir}/${sample_name}.pca.prune.in \
 	--make-bed --out ${output_dir}/${sample_name}.pca.pruned
 
-
+### PCA check
 ml plink2
 plink2 --bfile ${output_dir}/${sample_name}.pca.pruned \
 	--freq --pca approx var-wts \
@@ -81,7 +83,7 @@ plink2 --bfile ${output_dir}/${sample_name}.pca.pruned \
 	--out ${output_dir}/${sample_name}.pca
 
 
-## Sample QC
+## Sample QC to remove failed samples
 cat "Low quality sample list" > ${path_dir}/sample_qc.list
 
 plink --bfile ${output_dir}/VQ/${sample_name}.auto.maf0.01.geno0.02.hwe10E_6 \
