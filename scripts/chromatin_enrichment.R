@@ -85,6 +85,7 @@ res_gene <- map(res, ~{
     left_join(.x , gene_meta, by = c("feature" = "gene_id", "chr") )
   })
 
+### Lift over to match both dataset
 chain_hg19_hg38 <- import.chain(paste0(path_chain, "hg19ToHg38.over.chain"))
 chain_hg38_hg19 <- import.chain(paste0(path_chain, "hg38ToHg19.over.chain"))
 liftOverCoord <- function(dataset, from = "hg19", to = "hg38"){
@@ -110,7 +111,7 @@ liftOverCoord <- function(dataset, from = "hg19", to = "hg38"){
   return(dataset2)
 }
 
-### Nott et al. 2019
+### Nott et al. 2019 
 ast_promoter <- rtracklayer::import(here::here(paste0(path_ext,'/Astrocyte_promoters.bed' )), 
                                     format = "BED")
 ast_promoter2 <- liftOverCoord(ast_promoter, from = "hg19", to = "hg38")
@@ -243,7 +244,7 @@ theme_bj <- function () {
     )
 }
 
-## Enhancer
+## Enhancer enrichment test
 ast_enh_res2 <- dist_df %>% #dplyr::filter(sig==TRUE) %>%
   split(.$dataset) %>%
   map_df( ~{
@@ -320,7 +321,7 @@ ast_enh_res2$reference <- factor(ast_enh_res2$reference, levels = phenotype)
 ast_enh_res2
 
 
-## Promoter
+## Promoter enrichment test
 ast_pro_res2 <- dist_df %>%
   split(.$dataset) %>%
   map_df( ~{
