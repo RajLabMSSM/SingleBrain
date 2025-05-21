@@ -11,10 +11,11 @@ suppressPackageStartupMessages(library(readxl))
 
 
 # COLOC compare 
+### Load the COLOC result
 COLOC_res <- read_tsv('~/all_COLOC_results_merged_H4_0.5_with_LD_filtered.tsv.gz')
 
 AD_total_colocs <- COLOC_res
-
+### Convert gene id to symbol
 genes <- AD_total_colocs$QTL_Gene[grepl('ENSG0', AD_total_colocs$QTL_Gene, fixed=TRUE)]
 genes <- sapply(strsplit(genes, '\\.'), '[[', 1)
 AD_total_colocs$QTL_Ensembl[is.na(AD_total_colocs$QTL_Ensembl)] = AD_total_colocs$QTL_Gene[is.na(AD_total_colocs$QTL_Ensembl)]
@@ -30,7 +31,7 @@ AD_total_colocs <- AD_total_colocs[!is.na(AD_total_colocs$PP.H4.abf),]
 
 AD_total_colocs <- AD_total_colocs %>% group_by(GWAS, locus, new_QTL_Gene, QTL) %>% slice_max(PP.H4.abf)
 
-
+### Extract QTL1 and QTL2 from coloc result
 COLOC_qtl1 <- AD_total_colocs %>% dplyr::filter((QTL==qtl1_name))
 COLOC_qtl2 <- AD_total_colocs %>% dplyr::filter((QTL==qtl2_name))
 
@@ -46,6 +47,7 @@ COLOC_qtl <- inner_join(COLOC_qtl1, COLOC_qtl2, by=c('GWAS', "disease",'locus',
 COLOC_qtl <- COLOC_qtl%>% group_by(GWAS, new_QTL_Gene) %>% slice_max(PP.H4.abf.x)
 COLOC_qtl <- COLOC_qtl%>% group_by(GWAS, new_QTL_Gene) %>% slice_max(PP.H4.abf.y)
 
+### Normalization 
 options(ggrepel.max.overlaps = Inf)
 COLOC_qtl_fill <- COLOC_qtl%>% dplyr::filter(((PP.H4.abf.x>0.5)|(PP.H4.abf.y>0.5)))
 COLOC_qtl_fill$ratio <-  log2(COLOC_qtl_fill$PP.H4.abf.x /COLOC_qtl_fill$PP.H4.abf.y)
@@ -59,6 +61,7 @@ COLOC_qtl_diff <- COLOC_qtl_fill_tmp%>% dplyr::filter(((ratio_color < -1)|
                                                          ((PP.H4.abf.x >= 0.8)|(PP.H4.abf.y <= 0.5))
 ))
 
+### plot the result
 p1 <- ggplot(COLOC_qtl_fill_tmp, aes(x=PP.H4.abf.x, y=PP.H4.abf.y, 
                                      color=ratio_color, label=new_QTL_Gene)) +
   geom_point(size=4) + 
