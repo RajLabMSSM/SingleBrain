@@ -28,6 +28,7 @@ snrna_qtl <- c('SingleBrain_Ast','SingleBrain_MG','SingleBrain_Ext', 'SingleBrai
 gwas_list <- c('VanRheenenEUR_2021','Daner_2020','TrubetskoyEUR_2022',
                'Nalls23andMe_2019','Bellenguez_2021', 'IMSGC_2019')
 
+### Extract the GWAS and QTL to plot
 AD_total_colocs <- AD_total_colocs[which(AD_total_colocs$QTL %in% snrna_qtl ),]
 AD_total_colocs <- AD_total_colocs[which(AD_total_colocs$GWAS %in% gwas_list ),]
 
@@ -55,6 +56,7 @@ cell_list <- c('Endothelial cells','OPCs','Microglia',
                'Astrocytes','Oligodendrocytes','Inhibitory Neurons', 'Excitatory Neurons'
 )
 
+### Annotate the disease with GWAS name
 AD_total_colocs_summary[AD_total_colocs_summary$GWAS=='Bellenguez_2022','Disease'] <- 'AD'
 AD_total_colocs_summary[AD_total_colocs_summary$GWAS=='Kunkle_2019','Disease'] <- 'AD'
 AD_total_colocs_summary[AD_total_colocs_summary$GWAS=='Jansen_2018','Disease'] <- 'AD'
@@ -78,6 +80,7 @@ AD_total_colocs_summary <- AD_total_colocs_summary %>%
 AD_total_colocs_summary$Freq <- AD_total_colocs_summary$Freq * 100
 AD_total_colocs_summary$Freq  <- round(AD_total_colocs_summary$Freq, digits=2)
 
+### plotting
 p_stack <-ggplot(AD_total_colocs_summary, aes(fill=celltype, y=n, x=Disease, label = celltype)) + 
   geom_bar(position="fill", stat="identity", color = "black") + 
   scale_fill_manual(values = colorset) + 
@@ -102,6 +105,7 @@ ggsave(filename, plot = p_stack,
 ## COLOC MR summary
 COLOC_total <- read_tsv(paste0(path_dir,"/all_COLOC_results_merged_H4_0.5_with_LD.tsv.gz"))
 
+### Load MR result and filter by significant value
 MR_total <- read_tsv(paste0(path_dir,"/all_MR_results_merged_H4_1_snp_wFDR.tsv.gz"))
 
 MR_total <- MR_total %>% dplyr::filter(grepl("Inverse variance weighted", method)) 
@@ -144,6 +148,7 @@ AD_total_mrs$Beta <- abs(AD_total_mrs$Beta)
 
 AD_total_mrs$QTL <- gsub('SingleBrain_','',AD_total_mrs$QTL)
 
+### Extract necessary columns
 subsetted2 <- AD_total_mrs %>% dplyr::select(GWAS, locus, new_QTL_Gene, QTL, celltype, value)
 subsetted2$method <- 'MR_positive'
 subsetted2[(subsetted2$value<0),'method'] = 'MR_negative'
@@ -155,6 +160,7 @@ subsetted$type <- paste0('COLOC_', subsetted$QTL)
 subsetted$method <- 'COLOC'
 subsetted4 <- rbind(subsetted2[which(subsetted2$id %in% subsetted$id ),],subsetted)
 
+### Make MR sig or not
 subsetted5 <- subsetted %>% dplyr::filter(value>=0.8)
 subsetted5$MR <- 'No'
 subsetted5[which(subsetted5$id %in% subsetted2$id ),'MR'] = 'Yes'
@@ -200,6 +206,7 @@ df_count[df_count$GWAS=='Nalls23andMe_2019', 'disease'] =  'PD'
 df_count[df_count$GWAS=='TrubetskoyEUR_2022', 'disease'] =  'SCZ'
 df_count[df_count$GWAS=='VanRheenenEUR_2021', 'disease'] =  'ALS'
 
+### Categorize the result
 df_count_seq <- df_count %>% dplyr::filter(type=='Total') %>% arrange(desc(counts))
 
 df_count$disease <- factor(df_count$disease, levels = df_count_seq$disease)
@@ -217,6 +224,7 @@ df_count_label$label <- paste(df_count_label$MR, df_count_label$COLOC, df_count_
 df_count_label <- df_count_label %>% dplyr::select(GWAS, label)
 df_count <- merge(df_count, df_count_label, all.x=TRUE)
 
+### plotting
 p_overlap_mr <- df_count %>% dplyr::filter(type=='Total') %>% 
   ggplot(aes(x=disease, y=counts)) + 
   geom_bar(stat = "identity", fill='darkgrey') +
@@ -251,13 +259,13 @@ ggsave(filename, plot = p_overlap_mr,
 
 
 ## COLOC fine-mapping
-
+### Load the fine-mapping result
 finemap_all_res <- read_tsv('~/all_results_merged_PIP_0.1.tsv.gz') 
 finemap_all_res_sim_095 <- finemap_all_res[finemap_all_res$PIP >= 0.95, 
                                            c('feature', 'QTL')] %>% unique()
 finemap_all_res_sim_095$PIP095 <- 'Yes'
 
-
+### Extract coloc result
 subsetted7 <- subsetted %>% dplyr::filter(value>=0.8)
 subsetted7 <- left_join(subsetted7, tmp_res_095, by=c('new_QTL_Gene'='Symbol','QTL'))
 subsetted7[is.na(subsetted7)]='No'
@@ -284,6 +292,7 @@ df_count2[df_count2$GWAS=='Nalls23andMe_2019', 'disease'] =  'PD'
 df_count2[df_count2$GWAS=='TrubetskoyEUR_2022', 'disease'] =  'SCZ'
 df_count2[df_count2$GWAS=='VanRheenenEUR_2021', 'disease'] =  'ALS'
 
+### Categorize the result
 df_count_seq <- df_count2 %>% dplyr::filter(type=='Total') %>% arrange(desc(counts))
 
 df_count2$disease <- factor(df_count2$disease, levels = df_count_seq$disease)
@@ -303,6 +312,7 @@ df_count_label$label <- paste(df_count_label$Finemap, df_count_label$COLOC, df_c
 df_count_label <- df_count_label %>% dplyr::select(GWAS, label)
 df_count2 <- merge(df_count2, df_count_label, all.x=TRUE)
 
+### plotting
 p_overlap_finemap <- df_count2 %>% dplyr::filter(type=='Total') %>% ggplot(aes(x=disease, y=counts)) + 
   geom_bar(stat = "identity", fill='darkgrey') +
   geom_bar(data=df_count2 %>% dplyr::filter(type=='coloc'), 
