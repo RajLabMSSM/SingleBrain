@@ -8,7 +8,7 @@ import pyreadr
 from scipy import sparse, io
 import matplotlib
 
-
+### Load reference file
 adata_sel = sc.read_h5ad(reference_file)
 
 adata_sel.layers["counts"] = adata_sel.X.copy()
@@ -28,6 +28,7 @@ adata_sel.obsm['X_pca'] = adata_sel.obsm['X_pca_harmony']
 sc.pp.neighbors(adata_sel, n_neighbors=100, n_pcs=20)
 sc.tl.umap(adata_sel)
 
+### Load the target file
 adata_new = sc.read_h5ad(singlebrain_file)
 sc.pp.scale(adata_new, max_value=10)
 sc.pp.pca(adata_new, n_comps=50)
