@@ -4,10 +4,11 @@ suppressPackageStartupMessages(library(ggbio))
 suppressPackageStartupMessages(library(ggplot2))
 suppressPackageStartupMessages(library(dplyr))
 
-
+# Load the result
 all_res <- read_tsv('~/MPRA_consensus_table.tsv')
 sig_res <- all_res %>% dplyr::filter(significance==TRUE)
 
+# Target SNPs to plot
 snp_target_list <- c(qtl_finemap_list, gwas_finemap_list,  rsid, qtl_lead_snp, credible_list)
 snp_target_list <- snp_target_list[snp_target_list %in%sig_res$variant_id] %>% unique()
 
@@ -18,6 +19,7 @@ plt_res[plt_res$variant_id %in% sig_res$variant_id, 'sig'] = 'Yes'
 plt_res[plt_res$variant_id %in% snp_target_list ,'sig'] = 'CredibleSet'
 plt_res$sig <- factor(plt_res$sig, levels = c('CredibleSet', 'Yes','No'))
 
+# Plot for MPRA
 plt_volcano <- ggplot(plt_res, aes(x=logFC, y=log10p, color=sig)) +
   geom_point(data = plt_res[plt_res$sig == 'No', ], size=3) +
   geom_point(data = plt_res[plt_res$sig == 'Yes', ], size=3) +
