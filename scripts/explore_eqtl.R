@@ -331,3 +331,115 @@ p
 ggsave(filename, plot = p, width=10 ,height=4.5, 
        dpi=600, limitsize = FALSE)
 
+
+## trans-eQTL summary
+## df_egene dataframe with columns celltype, cis_eGenes, trans_eGenes 
+egene_number_plot <- df_egene %>% ggplot(aes(x=cis_eGenes, y=trans_eGenes, 
+                        color=celltype)) +
+  geom_point(stat = "identity",size=4 ) +
+  scale_color_manual(values = colorset) +
+  theme_bw() + 
+  scale_y_continuous(name = "trans eGenes (n)") +
+  scale_x_continuous(name = "cis eGenes (n)", ) +
+  theme(axis.text.x = element_text(hjust = 0.5, vjust = 0.9, size = 12, color='black'),
+        axis.text.y = element_text(angle = 45, size = 12, color='black'),
+        axis.title = element_text(size = 12, color='black'),
+        legend.position = 'none') +
+    ggrepel::geom_text_repel(data = df_egene, aes(label=celltype),
+                          force=1, 
+                          min.segment.length = unit(0, 'lines'), 
+                  box.padding=unit(0.5,'lines'), size=4,
+                  direction = "y", hjust = 0, vjust = 1, 
+                  color='black' ) 
+show(egene_number_plot)
+
+filename <- paste0('~/transQTL_eGenes.pdf')
+ggsave(filename, plot = egene_number_plot)
+
+## trans-eQTL upset plot
+## transqtl_{celltype}_sig: filter by Bornferroni threshold top assoc.
+library('UpSetR')
+trabsqtl_share <- merge(transqtl_ast_sig %>% dplyr::select(feature) %>% mutate(Ast=1) %>% unique(), 
+                        transqtl_ext_sig %>% dplyr::select(feature) %>% mutate(Ext=1) %>% unique(), 
+                        all=TRUE, by = 'feature')
+trabsqtl_share <- merge(trabsqtl_share, 
+                        transqtl_in_sig %>% dplyr::select(feature) %>% mutate(IN=1) %>% unique(), 
+                        all=TRUE, by = 'feature')
+trabsqtl_share <- merge(trabsqtl_share, 
+                        transqtl_mg_sig %>% dplyr::select(feature) %>% mutate(MG=1) %>% unique(), 
+                        all=TRUE, by = 'feature')
+trabsqtl_share <- merge(trabsqtl_share, 
+                        transqtl_od_sig %>% dplyr::select(feature) %>% mutate(OD=1) %>% unique(), 
+                        all=TRUE, by = 'feature')
+trabsqtl_share <- merge(trabsqtl_share, 
+                        transqtl_opc_sig %>% dplyr::select(feature) %>% mutate(OPC=1) %>% unique(), 
+                        all=TRUE, by = 'feature')
+
+trabsqtl_share <- trabsqtl_share %>% column_to_rownames('feature')
+
+trabsqtl_share[is.na(trabsqtl_share)] <- 0
+
+pdf("~/transQTL_eGenes_upset.pdf")
+upset(trabsqtl_share, 
+      matrix.color="black", nsets = 10, 
+      nintersects = 21, point.size=4,
+      sets.bar.color=c( "#e31a1c","#ff7f00","#33a02c",
+                       "#6a3d9a","#fdbf6f","#1f78b4"
+                       )
+      )
+dev.off()
+
+## trans-eQTL circlo plot
+variant_id <- 'rs123'
+transqtl_sig_circle_plot <- transqtl_sig[transqtl_sig$variant_id==variant_id,]
+transqtl_sig_circle_plot
+cis_genename<- 'ABC'
+
+plot1_data  <- data.frame(feature = c('ENSG00000123456', transqtl_sig_circle_plot$feature)) %>% unique()
+geneIDs1 <- ensembldb::select(EnsDb.Hsapiens.v79, keys= plot1_data$feature, 
+                              keytype = "GENEID", columns = c("SYMBOL","GENEID"))
+colnames(geneIDs1) = c('name', 'feature')  
+
+plot1_data <- merge(plot1_data, geneIDs1, by ='feature')
+plot1_data <- merge(plot1_data, phen_mdata_plot, by ='feature') # phen_mdata_plot includes chr,start,end site for each gene
+plot1_data <- data.frame(
+  chr = plot1_data$chr,
+  start = plot1_data$start,
+  end = plot1_data$end,
+  name = plot1_data$name
+  )
+plot1_data
+
+### Define the links for the first plot
+plot1_links <- data.frame(
+  chr1 = plot1_data[plot1_data$name==cis_genename,c('chr')] %>% as.character(),
+  start1 = plot1_data[plot1_data$name==cis_genename,c('start')] %>% as.numeric(), # Approximate center of cis
+  end1 = plot1_data[plot1_data$name==cis_genename,c('end')] %>% as.numeric(),
+  chr2 = plot1_data[plot1_data$name!=cis_genename,c('chr')] %>% as.character(),
+  start2 = plot1_data[plot1_data$name!=cis_genename,c('start')] %>% as.numeric(), # Approximate centers of trans
+  end2 = plot1_data[plot1_data$name!=cis_genename,c('end')] %>% as.numeric()
+)
+### Create the first plot
+filename <- paste0('~/transeqtl_circleplot_',cis_genename,'.pdf')
+pdf(filename, width = 4, height = 4)
+### Create the first plot (page 1 of the PDF)
+par(mar = c(2, 2, 2, 2))
+circos.par(gap.degree = 1.5, start.degree = 90)
+circos.initializeWithIdeogram(
+  species = "hg38", 
+  plotType = c("ideogram", "labels"),
+  chromosome.index = paste0("chr", 1:22), 
+)
+### Add the connection_height argument to move labels out
+circos.genomicLabels(
+  plot1_data, 
+  cex=0.8,
+  labels.column = 4, 
+  side = "inside",
+  connection_height = mm_h(2),
+)
+circos.genomicLink(plot1_links[,1:3], plot1_links[,4:6], col = "#000000")
+title(paste0("celltype\n",variant_id))
+circos.clear()
+
+dev.off()
