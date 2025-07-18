@@ -33,7 +33,7 @@
 
 > SAIGE-QTL pipeline: [https://github.com/RajLabMSSM/SAIGEQTL-pipeline](https://github.com/RajLabMSSM/SAIGEQTL-pipeline).
 
-> All SAIGE-QTL summary statistics are accessible at [https://zenodo.org/uploads/15860973](https://zenodo.org/uploads/15860973).
+> All SAIGE-QTL summary statistics are accessible at [https://zenodo.org/records/15860973](https://zenodo.org/records/15860973).
 
 ## Authors
 
