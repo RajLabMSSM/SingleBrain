@@ -12,7 +12,7 @@
 
 > Bonferroni-corrected significant *trans*-eQTL summary statistics are accessible at [https://zenodo.org/records/15860673](https://zenodo.org/records/15860673). 
 
-> All disease- and sex-specific eQTL summary statistics are accessible at [https://zenodo.org/records/16051904](https://zenodo.org/records/16051904).
+> All disease-/sex-specific eQTL summary statistics are accessible at [https://zenodo.org/records/16051904](https://zenodo.org/records/16051904).
 
 ## Description 
 
