@@ -4,7 +4,7 @@
 
 > This repository includes code and plots. Exploratory analysis and intermediate processing files are too large for this repository.
 
-> [Preprint](https://pmc.ncbi.nlm.nih.gov/articles/PMC11908325/) is available.
+> [Preprint](https://pmc.ncbi.nlm.nih.gov/articles/PMC11908325/) on MedRxiv is available.
 
 > SingleBrain eQTL browser is accessible at [https://singlebrain.nygenome.org](https://singlebrain.nygenome.org).
 
