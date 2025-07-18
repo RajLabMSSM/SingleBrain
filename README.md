@@ -8,9 +8,7 @@
 
 > SingleBrain eQTL browser is accessible at [https://singlebrain.nygenome.org](https://singlebrain.nygenome.org).
 
-> All *cis*-eQTL summary statistics are accessible at [https://zenodo.org/records/14908182](https://zenodo.org/records/14908182).
-
-> Bonferroni-corrected significant *trans*-eQTL summary statistics are accessible at [https://zenodo.org/records/15860673](https://zenodo.org/records/15860673). 
+> All *cis*-eQTL summary statistics are accessible at [https://zenodo.org/records/14908182](https://zenodo.org/records/14908182) and Bonferroni-corrected significant *trans*-eQTL summary statistics are accessible at [https://zenodo.org/records/15860673](https://zenodo.org/records/15860673). 
 
 > All disease-/sex-specific eQTL summary statistics are accessible at [https://zenodo.org/records/16051904](https://zenodo.org/records/16051904).
 
